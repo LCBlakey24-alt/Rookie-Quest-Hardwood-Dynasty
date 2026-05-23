@@ -36,15 +36,10 @@ export type LocalSeasonSaveMeta = {
 export function loadLocalSeasonSave(): LocalSeasonSave | null {
   try {
     const rawSave = window.localStorage.getItem(SAVE_KEY);
-
     if (!rawSave) return null;
 
     const parsedSave = JSON.parse(rawSave) as Partial<LocalSeasonSave>;
-    const migratedSave = migrateSave(parsedSave);
-
-    if (!migratedSave) return null;
-
-    return migratedSave;
+    return migrateSave(parsedSave);
   } catch {
     return null;
   }
@@ -101,11 +96,9 @@ export function exportLocalSeasonSave() {
   return window.localStorage.getItem(SAVE_KEY);
 }
 
-export function restoreBackupLocalSeasonSave() {
+export function importLocalSeasonSave(rawSave: string) {
   try {
-    const backupRaw = window.localStorage.getItem(SAVE_BACKUP_KEY);
-    if (!backupRaw) return null;
-    const parsedSave = JSON.parse(backupRaw) as Partial<LocalSeasonSave>;
+    const parsedSave = JSON.parse(rawSave) as Partial<LocalSeasonSave>;
     const migratedSave = migrateSave(parsedSave);
     if (!migratedSave) return null;
     window.localStorage.setItem(SAVE_KEY, JSON.stringify(migratedSave));
@@ -115,13 +108,31 @@ export function restoreBackupLocalSeasonSave() {
   }
 }
 
-export function getBackupLocalSeasonSaveMeta() {
+export function restoreBackupLocalSeasonSave() {
   try {
     const backupRaw = window.localStorage.getItem(SAVE_BACKUP_KEY);
     if (!backupRaw) return null;
+
     const parsedSave = JSON.parse(backupRaw) as Partial<LocalSeasonSave>;
     const migratedSave = migrateSave(parsedSave);
     if (!migratedSave) return null;
+
+    window.localStorage.setItem(SAVE_KEY, JSON.stringify(migratedSave));
+    return migratedSave;
+  } catch {
+    return null;
+  }
+}
+
+export function getBackupLocalSeasonSaveMeta(): Pick<LocalSeasonSaveMeta, 'savedAt' | 'teamId'> | null {
+  try {
+    const backupRaw = window.localStorage.getItem(SAVE_BACKUP_KEY);
+    if (!backupRaw) return null;
+
+    const parsedSave = JSON.parse(backupRaw) as Partial<LocalSeasonSave>;
+    const migratedSave = migrateSave(parsedSave);
+    if (!migratedSave) return null;
+
     return {
       savedAt: migratedSave.savedAt,
       teamId: migratedSave.selectedTeamId,
@@ -131,32 +142,10 @@ export function getBackupLocalSeasonSaveMeta() {
   }
 }
 
-export function importLocalSeasonSave(rawSave: string) {
-  try {
-    const parsedSave = JSON.parse(rawSave) as Partial<LocalSeasonSave>;
-    const migratedSave = migrateSave(parsedSave);
-    if (!migratedSave) return null;
-    window.localStorage.setItem(SAVE_KEY, JSON.stringify(migratedSave));
-    return migratedSave;
-  } catch {
-    return null;
-  }
-}
-
-export function exportLocalSeasonSave() {
-  return window.localStorage.getItem(SAVE_KEY);
-}
-
-export function importLocalSeasonSave(rawSave: string) {
-  try {
-    const parsedSave = JSON.parse(rawSave) as Partial<LocalSeasonSave>;
-    const migratedSave = migrateSave(parsedSave);
-    if (!migratedSave) return null;
-    window.localStorage.setItem(SAVE_KEY, JSON.stringify(migratedSave));
-    return migratedSave;
-  } catch {
-    return null;
-  }
+// Temporary compatibility bridge for App.tsx while the oversized app shell is being stabilised.
+// The long-term fix is to import this helper directly when App.tsx is refactored.
+if (typeof globalThis !== 'undefined') {
+  globalThis.getBackupLocalSeasonSaveMeta = getBackupLocalSeasonSaveMeta;
 }
 
 function migrateSave(save: Partial<LocalSeasonSave>): LocalSeasonSave | null {
