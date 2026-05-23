@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { TeamLogo } from './TeamLogo';
 import { getTeamProfile } from '../data/teamProfiles';
 import { careerTracks } from '../data/careerPathways';
-import { leagueExpansionProfiles } from '../data/worldBasketball';
+import { leagueExpansionProfiles, type LeagueExpansionProfile } from '../data/worldBasketball';
 import type { Team } from '../types/basketball';
 
 type TeamSelectScreenProps = {
@@ -23,6 +23,10 @@ type TeamSelectScreenProps = {
   }) => void;
 };
 
+type ExpansionFilter = 'All' | LeagueExpansionProfile['status'];
+
+const MAX_LOGO_UPLOAD_BYTES = 2 * 1024 * 1024;
+
 export function TeamSelectScreen({ selectedTeamId, teams, onSelectTeam, onCreateCustomTeam }: TeamSelectScreenProps) {
   const [customTier, setCustomTier] = useState<'Top' | 'Mid' | 'Bottom'>('Mid');
   const [customName, setCustomName] = useState('');
@@ -33,6 +37,10 @@ export function TeamSelectScreen({ selectedTeamId, teams, onSelectTeam, onCreate
   const [customTertiaryColor, setCustomTertiaryColor] = useState('#38bdf8');
   const [customLogoUrl, setCustomLogoUrl] = useState<string | undefined>(undefined);
   const [customMiniLogoUrl, setCustomMiniLogoUrl] = useState<string | undefined>(undefined);
+  const [expansionFilter, setExpansionFilter] = useState<ExpansionFilter>('All');
+  const [selectedLeaguePreview, setSelectedLeaguePreview] = useState(leagueExpansionProfiles[0]?.leagueId ?? 'bsbl');
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
   const highestReputation = [...teams].sort((a, b) => b.reputation - a.reputation)[0];
   const mostHistoric = [...teams].sort((a, b) => b.championships - a.championships)[0];
   const bestRebuild = [...teams].sort((a, b) => a.reputation - b.reputation || a.championships - b.championships)[0];
@@ -45,6 +53,8 @@ export function TeamSelectScreen({ selectedTeamId, teams, onSelectTeam, onCreate
   const isValidShortName = sanitizedShortName.length === 3;
 
   useEffect(() => {
+    if (!selectedTeam) return;
+
     setCustomName(`${selectedTeam.city} Custom`);
     setCustomCity(selectedTeam.city);
     setCustomShortName(selectedTeam.shortName);
@@ -54,11 +64,12 @@ export function TeamSelectScreen({ selectedTeamId, teams, onSelectTeam, onCreate
     setCustomLogoUrl(selectedTeam.logoUrl);
     setCustomMiniLogoUrl(selectedTeam.miniLogoUrl);
     setUploadError(null);
-  }, [selectedTeam.id]);
+  }, [selectedTeam]);
 
   useEffect(() => {
     if (!filteredLeagues.length) return;
     const selectionIsVisible = filteredLeagues.some((league) => league.leagueId === selectedLeaguePreview);
+
     if (!selectionIsVisible) {
       setSelectedLeaguePreview(filteredLeagues[0].leagueId);
     }
@@ -66,36 +77,35 @@ export function TeamSelectScreen({ selectedTeamId, teams, onSelectTeam, onCreate
 
   function handleUpload(file: File | null, setter: (value: string | undefined) => void) {
     if (!file) return;
+
     if (file.size > MAX_LOGO_UPLOAD_BYTES) {
       setUploadError('Logo upload must be 2MB or smaller.');
       return;
     }
+
     if (!file.type.startsWith('image/')) {
       setUploadError('Please upload an image file.');
       return;
     }
+
     setUploadError(null);
     const reader = new FileReader();
     reader.onload = () => setter(typeof reader.result === 'string' ? reader.result : undefined);
     reader.readAsDataURL(file);
   }
 
-  useEffect(() => {
-    setCustomName(`${selectedTeam.city} Custom`);
-    setCustomCity(selectedTeam.city);
-    setCustomShortName(selectedTeam.shortName);
-    setCustomPrimaryColor(selectedTeam.primaryColor);
-    setCustomSecondaryColor(selectedTeam.secondaryColor);
-    setCustomTertiaryColor(selectedTeam.tertiaryColor ?? '#38bdf8');
-    setCustomLogoUrl(selectedTeam.logoUrl);
-    setCustomMiniLogoUrl(selectedTeam.miniLogoUrl);
-  }, [selectedTeam.id]);
-
-  function handleUpload(file: File | null, setter: (value: string | undefined) => void) {
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setter(typeof reader.result === 'string' ? reader.result : undefined);
-    reader.readAsDataURL(file);
+  if (!selectedTeam || !highestReputation || !mostHistoric || !bestRebuild) {
+    return (
+      <section className="team-select-screen">
+        <div className="screen-heading">
+          <div>
+            <p className="eyebrow">New Save Setup</p>
+            <h3>No teams available</h3>
+            <p className="muted">Team data could not be loaded.</p>
+          </div>
+        </div>
+      </section>
+    );
   }
 
   return (
@@ -110,7 +120,7 @@ export function TeamSelectScreen({ selectedTeamId, teams, onSelectTeam, onCreate
       </div>
 
       <section className="roster-summary-grid">
-        <SummaryCard label="Selected" value={selectedTeam?.shortName ?? '—'} helper={selectedTeam?.name ?? 'Choose a club'} />
+        <SummaryCard label="Selected" value={selectedTeam.shortName} helper={selectedTeam.name} />
         <SummaryCard label="Highest Rep" value={highestReputation.shortName} helper={`${highestReputation.name} · REP ${highestReputation.reputation}`} />
         <SummaryCard label="Most Historic" value={mostHistoric.shortName} helper={`${mostHistoric.championships} historical titles`} />
         <SummaryCard label="Rebuild Pick" value={bestRebuild.shortName} helper={`${bestRebuild.name} · ${getDifficultyLabel(bestRebuild)}`} />
@@ -170,23 +180,19 @@ export function TeamSelectScreen({ selectedTeamId, teams, onSelectTeam, onCreate
           ))}
         </div>
         <div className="assistant-notes">
-          {leagueExpansionProfiles.filter((league) => expansionFilter === 'All' ? true : league.status === expansionFilter).map((league) => (
-            <div className="assistant-note" key={league.leagueId}>
+          {filteredLeagues.map((league) => (
+            <button
+              className={selectedLeaguePreview === league.leagueId ? 'assistant-note option-button active' : 'assistant-note option-button'}
+              key={league.leagueId}
+              onClick={() => setSelectedLeaguePreview(league.leagueId)}
+              type="button"
+            >
               <strong>{league.leagueName} · {league.country} · {league.status}</strong>
-              <span>
-                Palette:
-                <span style={{ display: 'inline-flex', gap: '0.35rem', marginLeft: '0.35rem', verticalAlign: 'middle' }}>
-                  <span title="Primary" style={{ width: '0.9rem', height: '0.9rem', borderRadius: '999px', background: league.palette.primary, border: '1px solid rgba(255,255,255,0.4)' }} />
-                  <span title="Secondary" style={{ width: '0.9rem', height: '0.9rem', borderRadius: '999px', background: league.palette.secondary, border: '1px solid rgba(255,255,255,0.4)' }} />
-                  <span title="Tertiary" style={{ width: '0.9rem', height: '0.9rem', borderRadius: '999px', background: league.palette.tertiary, border: '1px solid rgba(255,255,255,0.4)' }} />
-                </span>
-              </span>
               <span>{league.styleIdentity}</span>
-              <span>{league.signingModel}</span>
-              <span>{league.talentPipeline}</span>
-            </div>
+            </button>
           ))}
         </div>
+        {activeLeaguePreview && <LeaguePreviewCard league={activeLeaguePreview} />}
       </article>
 
       <section className="team-select-grid">
@@ -264,14 +270,16 @@ export function TeamSelectScreen({ selectedTeamId, teams, onSelectTeam, onCreate
                       <label className="muted">Main Logo <input type="file" accept="image/*" onChange={(event) => handleUpload(event.target.files?.[0] ?? null, setCustomLogoUrl)} /></label>
                       <label className="muted">Mini Logo <input type="file" accept="image/*" onChange={(event) => handleUpload(event.target.files?.[0] ?? null, setCustomMiniLogoUrl)} /></label>
                     </div>
+                    {uploadError && <span className="warning">{uploadError}</span>}
                   </div>
                   <button
                     className="secondary-action"
+                    disabled={!trimmedName || !trimmedCity || !isValidShortName}
                     onClick={() => onCreateCustomTeam({
                       baseTeamId: team.id,
-                      name: customName.trim() || `${team.city} Custom`,
-                      city: customCity.trim() || team.city,
-                      shortName: (customShortName.trim() || team.shortName).toUpperCase().slice(0, 3),
+                      name: trimmedName || `${team.city} Custom`,
+                      city: trimmedCity || team.city,
+                      shortName: sanitizedShortName || team.shortName,
                       tier: customTier,
                       primaryColor: customPrimaryColor,
                       secondaryColor: customSecondaryColor,
