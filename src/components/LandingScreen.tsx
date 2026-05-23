@@ -3,7 +3,7 @@ import { useState } from 'react';
 type LandingScreenProps = {
   hasSave: boolean;
   selectedTeamName: string;
-  reducedMotion: boolean;
+  reducedMotion?: boolean;
   onContinue: () => void;
   onNewFranchise: () => void;
 };
