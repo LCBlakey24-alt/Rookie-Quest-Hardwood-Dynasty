@@ -1,0 +1,29 @@
+.rollover-preview-panel {
+  display: grid;
+  gap: 1rem;
+}
+
+.rollover-note-list {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.rollover-note-row {
+  display: grid;
+  grid-template-columns: 1.2rem 1fr;
+  align-items: start;
+  gap: 0.6rem;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(15, 23, 42, 0.58);
+  padding: 0.75rem;
+  box-shadow: none;
+}
+
+.rollover-note-row strong {
+  color: #f97316;
+  line-height: 1.2;
+}
+
+.rollover-note-row span {
+  color: #cbd5e1;
+}
