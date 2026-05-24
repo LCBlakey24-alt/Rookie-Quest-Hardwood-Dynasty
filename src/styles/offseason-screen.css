@@ -1,0 +1,81 @@
+.offseason-screen {
+  display: grid;
+  gap: 1rem;
+}
+
+.offseason-panel {
+  display: grid;
+  gap: 1rem;
+}
+
+.offseason-step-list,
+.offseason-watch-list {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.offseason-step-row,
+.offseason-watch-row {
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(15, 23, 42, 0.58);
+  padding: 0.85rem;
+  box-shadow: none;
+}
+
+.offseason-step-row {
+  display: grid;
+  grid-template-columns: 2.2rem 1fr auto;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.offseason-step-number {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border: 1px solid rgba(249, 115, 22, 0.45);
+  color: #f97316;
+  font-weight: 900;
+}
+
+.offseason-step-row div,
+.offseason-watch-row div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.offseason-step-row strong,
+.offseason-watch-row strong {
+  color: #f8fafc;
+}
+
+.offseason-step-row span,
+.offseason-watch-row span {
+  color: #94a3b8;
+}
+
+.offseason-step-row em,
+.offseason-watch-row em {
+  color: #f97316;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.offseason-watch-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+}
+
+@media (max-width: 760px) {
+  .offseason-step-row {
+    grid-template-columns: 1fr;
+  }
+
+  .offseason-watch-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
