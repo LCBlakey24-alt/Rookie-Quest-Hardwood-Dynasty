@@ -11,6 +11,7 @@ import './styles/player-attributes.css';
 import './styles/game-feel.css';
 import './styles/player-attribute-panel.css';
 import './styles/staff-screen.css';
+import './styles/offseason-screen.css';
 import './styles/no-glow.css';
 
 initialiseSidebarToggle();
