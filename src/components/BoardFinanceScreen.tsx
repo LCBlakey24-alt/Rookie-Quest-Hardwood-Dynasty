@@ -1,5 +1,6 @@
 import { formatMoney, getTeamAnnualWages } from '../game/contracts';
 import type { Standing, Team } from '../types/basketball';
+import { StaffScreen } from './StaffScreen';
 
 type BoardFinanceScreenProps = {
   boardConfidence: number;
@@ -34,7 +35,7 @@ export function BoardFinanceScreen({ boardConfidence, selectedTeam, standings, u
         <div>
           <p className="eyebrow">Board & Finance</p>
           <h3>{selectedTeam.name} club office</h3>
-          <p className="muted">Track board confidence, financial health, budgets and expectations.</p>
+          <p className="muted">Track board confidence, financial health, budgets, staff support and expectations.</p>
         </div>
         <span className="chip">{boardConfidence}% confidence</span>
       </div>
@@ -129,6 +130,8 @@ export function BoardFinanceScreen({ boardConfidence, selectedTeam, standings, u
           </div>
         </article>
       </section>
+
+      <StaffScreen team={selectedTeam} />
     </section>
   );
 }
