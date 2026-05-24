@@ -1,0 +1,96 @@
+:root {
+  --hd-shadow-none: none;
+}
+
+body {
+  background: #050a12 !important;
+}
+
+body::before,
+body::after,
+.panel::before,
+.panel::after,
+.hero-card::before,
+.hero-card::after,
+.landing-splash::before,
+.landing-splash::after,
+.landing-hero::before,
+.landing-hero::after,
+.team-select-card::before,
+.team-select-card::after {
+  box-shadow: none !important;
+  filter: none !important;
+  text-shadow: none !important;
+}
+
+.panel,
+.hero-card,
+.sidebar,
+.brand-mark,
+.team-badge,
+.team-mini,
+.result-team-badge,
+.team-select-badge,
+.team-select-card,
+.roster-summary-card,
+.stat-panel,
+.save-panel,
+.assistant-note,
+.box-score-row,
+.league-row,
+.roster-row,
+.fixture-row,
+.seed-team,
+.playoff-matchup-card,
+.score-block,
+.stat-block,
+.attribute-leader-card,
+.mode-card,
+.landing-splash,
+.landing-hero {
+  box-shadow: none !important;
+  text-shadow: none !important;
+  filter: none !important;
+}
+
+.panel:hover,
+.hero-card:hover,
+.team-select-card:hover,
+.box-score-row:hover,
+.league-row:hover,
+.roster-row:hover,
+.fixture-row:hover,
+.seed-team:hover,
+.playoff-matchup-card:hover,
+.mode-card:hover {
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+.primary-action,
+.secondary-action,
+.option-button,
+.nav-item,
+.chip,
+.position-pill,
+.role-pill,
+.rating-pill,
+.standings-rank {
+  box-shadow: none !important;
+  text-shadow: none !important;
+  filter: none !important;
+}
+
+.positive,
+.warning,
+.eyebrow,
+.primary-action,
+.secondary-action,
+.option-button,
+.nav-item.active {
+  text-shadow: none !important;
+}
+
+.meter-fill {
+  box-shadow: none !important;
+}
