@@ -9,6 +9,7 @@ import './styles/landing-menu.css';
 import './styles/team-profiles.css';
 import './styles/player-attributes.css';
 import './styles/game-feel.css';
+import './styles/player-attribute-panel.css';
 import './styles/no-glow.css';
 
 initialiseSidebarToggle();
