@@ -111,7 +111,7 @@ export function derivePlayerRatingBreakdown(player: Player): PlayerRatingBreakdo
   const contextModifier = formModifier + moraleModifier - fatiguePenalty - injuryPenalty;
 
   const offenseRatings: Record<OffensiveRatingKey, number> = {
-    insideScoring: byArchetype(player, base, { Slasher: 7, 'Stretch Big': -1, 'Rim Protector': -2, 'Post Big': 0 }),
+    insideScoring: byArchetype(player, base, { Slasher: 7, 'Stretch Big': -1, 'Rim Protector': -2 }),
     midRangeScoring: byArchetype(player, base, { Sharpshooter: 4, 'Floor General': 3, 'Two-Way Wing': 2 }),
     threePointScoring: byArchetype(player, base, { Sharpshooter: 9, 'Stretch Big': 7, 'Floor General': 3, 'Rim Protector': -8, 'Glass Cleaner': -6 }),
     freeThrowScoring: clampRating(base + (player.position === 'PG' || player.position === 'SG' ? 4 : -1)),
