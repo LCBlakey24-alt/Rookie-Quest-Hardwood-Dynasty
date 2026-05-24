@@ -2,15 +2,20 @@ import type { TrainingFocus } from '../components/TrainingScreen';
 import { defaultTactics, type TacticalSettings } from './tactics';
 import type { SimulatedGameResult } from './simulateGame';
 import type { PlayerConditionChange, PlayerDevelopmentChange, RotationPlan, Team } from '../types/basketball';
+import { createEmptyCareerHistory, type CareerHistory, type CareerPhase } from '../types/careerSave';
 
 const SAVE_KEY = 'hoop-dynasty-manager-save-v1';
 const SAVE_BACKUP_KEY = 'hoop-dynasty-manager-save-v1-backup';
-const SAVE_VERSION = 5;
+const SAVE_VERSION = 6;
 const DEFAULT_TEAM_ID = 'bristol-breakers';
 const DEFAULT_TRAINING_FOCUS: TrainingFocus = 'Balanced';
+const DEFAULT_CAREER_PHASE: CareerPhase = 'Regular Season';
 
 export type LocalSeasonSave = {
   version: number;
+  currentSeason: number;
+  careerPhase: CareerPhase;
+  careerHistory: CareerHistory;
   rngSeed: number;
   rngCalls: number;
   playoffResults: SimulatedGameResult[];
@@ -31,6 +36,12 @@ export type LocalSeasonSaveMeta = {
   version: number;
   resultsCount: number;
   bytes: number;
+};
+
+export type LocalSeasonCareerFields = {
+  currentSeason?: number;
+  careerPhase?: CareerPhase;
+  careerHistory?: CareerHistory;
 };
 
 export function loadLocalSeasonSave(): LocalSeasonSave | null {
@@ -57,9 +68,13 @@ export function saveLocalSeason(
   latestDevelopmentReport: PlayerDevelopmentChange[] = [],
   rngSeed: number = 0,
   rngCalls: number = 0,
+  careerFields: LocalSeasonCareerFields = {},
 ) {
   const save: LocalSeasonSave = {
     version: SAVE_VERSION,
+    currentSeason: normaliseSeasonNumber(careerFields.currentSeason),
+    careerPhase: isCareerPhase(careerFields.careerPhase) ? careerFields.careerPhase : DEFAULT_CAREER_PHASE,
+    careerHistory: isCareerHistory(careerFields.careerHistory) ? careerFields.careerHistory : createEmptyCareerHistory(),
     rngSeed,
     rngCalls,
     playoffResults,
@@ -152,7 +167,10 @@ function migrateSave(save: Partial<LocalSeasonSave>): LocalSeasonSave | null {
   if (!Array.isArray(save.results) || !save.tactics) return null;
 
   return {
-    version: typeof save.version === 'number' ? save.version : 1,
+    version: SAVE_VERSION,
+    currentSeason: normaliseSeasonNumber(save.currentSeason),
+    careerPhase: isCareerPhase(save.careerPhase) ? save.careerPhase : DEFAULT_CAREER_PHASE,
+    careerHistory: isCareerHistory(save.careerHistory) ? save.careerHistory : createEmptyCareerHistory(),
     rngSeed: typeof save.rngSeed === 'number' ? save.rngSeed : 0,
     rngCalls: typeof save.rngCalls === 'number' ? save.rngCalls : 0,
     playoffResults: Array.isArray(save.playoffResults) ? save.playoffResults as SimulatedGameResult[] : [],
@@ -168,8 +186,26 @@ function migrateSave(save: Partial<LocalSeasonSave>): LocalSeasonSave | null {
   };
 }
 
+function normaliseSeasonNumber(value: unknown) {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 1 ? Math.floor(value) : 1;
+}
+
 function isTrainingFocus(value: unknown): value is TrainingFocus {
   return value === 'Balanced' || value === 'Offense' || value === 'Defense' || value === 'Conditioning';
+}
+
+function isCareerPhase(value: unknown): value is CareerPhase {
+  return value === 'Preseason' || value === 'Regular Season' || value === 'Playoffs' || value === 'Offseason';
+}
+
+function isCareerHistory(value: unknown): value is CareerHistory {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<CareerHistory>;
+
+  return Array.isArray(candidate.champions)
+    && Array.isArray(candidate.standingsArchive)
+    && Array.isArray(candidate.resultArchive)
+    && Boolean(candidate.managerRecord);
 }
 
 function isTeam(value: unknown): value is Team {
