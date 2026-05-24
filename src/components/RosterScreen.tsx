@@ -3,6 +3,7 @@ import { getTeamProfile } from '../data/teamProfiles';
 import { derivePlayerAttributes, getAttributeLabel, type AttributeKey } from '../game/playerAttributes';
 import type { SimulatedGameResult } from '../game/simulateGame';
 import type { Player, PlayerRole, Team } from '../types/basketball';
+import { PlayerAttributePanel } from './PlayerAttributePanel';
 
 type RosterScreenProps = {
   team: Team;
@@ -22,6 +23,7 @@ const featuredAttributes: AttributeKey[] = ['shooting', 'finishing', 'passing', 
 export function RosterScreen({ team, results, onChangePlayerPosition }: RosterScreenProps) {
   const [filter, setFilter] = useState<'All' | 'Starters' | 'Tired' | 'Injured' | 'High Upside'>('All');
   const [sortBy, setSortBy] = useState<'Role' | 'OVR' | 'POT' | 'Age' | 'PPG'>('Role');
+  const [selectedPlayerId, setSelectedPlayerId] = useState(team.roster[0]?.id ?? '');
   const profile = getTeamProfile(team.id);
   const sortedRoster = [...team.roster].sort((a, b) => {
     if (sortBy === 'OVR') return b.overall - a.overall;
@@ -37,6 +39,7 @@ export function RosterScreen({ team, results, onChangePlayerPosition }: RosterSc
     if (filter === 'High Upside') return player.potential - player.overall >= 8;
     return true;
   });
+  const selectedPlayer = team.roster.find((player) => player.id === selectedPlayerId) ?? filteredRoster[0] ?? team.roster[0];
   const averageOverall = Math.round(average(team.roster.map((player) => player.overall)));
   const averagePotential = Math.round(average(team.roster.map((player) => player.potential)));
   const bestProspect = [...team.roster].sort((a, b) => b.potential - a.potential)[0];
@@ -128,6 +131,8 @@ export function RosterScreen({ team, results, onChangePlayerPosition }: RosterSc
         </div>
       </article>
 
+      {selectedPlayer && <PlayerAttributePanel player={selectedPlayer} />}
+
       <article className="panel roster-panel">
         <div className="panel-header">
           <div>
@@ -214,7 +219,14 @@ export function RosterScreen({ team, results, onChangePlayerPosition }: RosterSc
           </div>
 
           {filteredRoster.map((player) => (
-            <RosterRow player={player} key={player.id} results={results} onChangePlayerPosition={onChangePlayerPosition} />
+            <RosterRow
+              player={player}
+              key={player.id}
+              results={results}
+              isSelected={player.id === selectedPlayer?.id}
+              onSelectPlayer={setSelectedPlayerId}
+              onChangePlayerPosition={onChangePlayerPosition}
+            />
           ))}
         </div>
       </article>
@@ -241,18 +253,22 @@ function SummaryCard({ label, value, helper }: SummaryCardProps) {
 type RosterRowProps = {
   player: Player;
   results: SimulatedGameResult[];
+  isSelected: boolean;
+  onSelectPlayer: (playerId: string) => void;
   onChangePlayerPosition: (playerId: string, position: Player['position']) => void;
 };
 
-function RosterRow({ player, results, onChangePlayerPosition }: RosterRowProps) {
+function RosterRow({ player, results, isSelected, onSelectPlayer, onChangePlayerPosition }: RosterRowProps) {
   const stats = getPlayerAverages(player.id, results);
   return (
-    <div className="roster-row">
+    <div className={isSelected ? 'roster-row selected' : 'roster-row'} onClick={() => onSelectPlayer(player.id)} role="button" tabIndex={0} onKeyDown={(event) => {
+      if (event.key === 'Enter' || event.key === ' ') onSelectPlayer(player.id);
+    }}>
       <div className="roster-player-cell">
         <strong>{player.name}</strong>
         <span>{player.archetype} · {getPlayerStatusTag(player)} · {getPlayerRecommendation(player)}</span>
       </div>
-      <span className="position-pill">
+      <span className="position-pill" onClick={(event) => event.stopPropagation()}>
         <select value={player.position} onChange={(event) => onChangePlayerPosition(player.id, event.target.value as Player['position'])}>
           {(['PG', 'SG', 'SF', 'PF', 'C'] as const).map((position) => (
             <option key={position} value={position}>{position}</option>
