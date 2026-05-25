@@ -1,5 +1,6 @@
 import { formatMoney, getTeamAnnualWages } from '../game/contracts';
 import type { Standing, Team } from '../types/basketball';
+import { CareerStatusPanel } from './CareerStatusPanel';
 import { StaffScreen } from './StaffScreen';
 
 type BoardFinanceScreenProps = {
@@ -39,6 +40,8 @@ export function BoardFinanceScreen({ boardConfidence, selectedTeam, standings, u
         </div>
         <span className="chip">{boardConfidence}% confidence</span>
       </div>
+
+      <CareerStatusPanel />
 
       <section className="roster-summary-grid">
         <SummaryCard label="Club Balance" value={formatMoney(finance.balance)} helper={finance.healthLabel} />
