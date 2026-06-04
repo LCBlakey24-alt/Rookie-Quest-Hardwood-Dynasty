@@ -1,10 +1,12 @@
 import { formatMoney, getTeamAnnualWages } from '../game/contracts';
+import type { CareerState } from '../game/careerState';
 import type { Standing, Team } from '../types/basketball';
 import { CareerStatusPanel } from './CareerStatusPanel';
 import { StaffScreen } from './StaffScreen';
 
 type BoardFinanceScreenProps = {
   boardConfidence: number;
+  careerState?: CareerState;
   selectedTeam: Team;
   standings: Standing[];
   userStanding: Standing | undefined;
@@ -20,7 +22,7 @@ type FinanceSnapshot = {
   healthLabel: string;
 };
 
-export function BoardFinanceScreen({ boardConfidence, selectedTeam, standings, userStanding }: BoardFinanceScreenProps) {
+export function BoardFinanceScreen({ boardConfidence, careerState, selectedTeam, standings, userStanding }: BoardFinanceScreenProps) {
   const leaguePosition = standings.findIndex((standing) => standing.teamId === selectedTeam.id) + 1;
   const finance = createFinanceSnapshot(selectedTeam, userStanding, leaguePosition, standings.length);
   const expectations = createBoardExpectations(selectedTeam, standings.length);
@@ -41,7 +43,7 @@ export function BoardFinanceScreen({ boardConfidence, selectedTeam, standings, u
         <span className="chip">{boardConfidence}% confidence</span>
       </div>
 
-      <CareerStatusPanel />
+      <CareerStatusPanel careerState={careerState} />
 
       <section className="roster-summary-grid">
         <SummaryCard label="Club Balance" value={formatMoney(finance.balance)} helper={finance.healthLabel} />
