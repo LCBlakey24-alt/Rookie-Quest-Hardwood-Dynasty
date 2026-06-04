@@ -70,11 +70,12 @@ export function saveLocalSeason(
   rngCalls: number = 0,
   careerFields: LocalSeasonCareerFields = {},
 ) {
+  const existingCareerFields = readExistingCareerFields();
   const save: LocalSeasonSave = {
     version: SAVE_VERSION,
-    currentSeason: normaliseSeasonNumber(careerFields.currentSeason),
-    careerPhase: isCareerPhase(careerFields.careerPhase) ? careerFields.careerPhase : DEFAULT_CAREER_PHASE,
-    careerHistory: isCareerHistory(careerFields.careerHistory) ? careerFields.careerHistory : createEmptyCareerHistory(),
+    currentSeason: normaliseSeasonNumber(careerFields.currentSeason ?? existingCareerFields.currentSeason),
+    careerPhase: isCareerPhase(careerFields.careerPhase) ? careerFields.careerPhase : existingCareerFields.careerPhase,
+    careerHistory: isCareerHistory(careerFields.careerHistory) ? careerFields.careerHistory : existingCareerFields.careerHistory,
     rngSeed,
     rngCalls,
     playoffResults,
@@ -184,6 +185,33 @@ function migrateSave(save: Partial<LocalSeasonSave>): LocalSeasonSave | null {
     savedAt: save.savedAt ?? new Date().toISOString(),
     trainingFocus: isTrainingFocus(save.trainingFocus) ? save.trainingFocus : DEFAULT_TRAINING_FOCUS,
   };
+}
+
+function readExistingCareerFields(): Required<LocalSeasonCareerFields> {
+  try {
+    const rawSave = window.localStorage.getItem(SAVE_KEY);
+    if (!rawSave) {
+      return {
+        currentSeason: 1,
+        careerPhase: DEFAULT_CAREER_PHASE,
+        careerHistory: createEmptyCareerHistory(),
+      };
+    }
+
+    const parsedSave = JSON.parse(rawSave) as Partial<LocalSeasonSave>;
+
+    return {
+      currentSeason: normaliseSeasonNumber(parsedSave.currentSeason),
+      careerPhase: isCareerPhase(parsedSave.careerPhase) ? parsedSave.careerPhase : DEFAULT_CAREER_PHASE,
+      careerHistory: isCareerHistory(parsedSave.careerHistory) ? parsedSave.careerHistory : createEmptyCareerHistory(),
+    };
+  } catch {
+    return {
+      currentSeason: 1,
+      careerPhase: DEFAULT_CAREER_PHASE,
+      careerHistory: createEmptyCareerHistory(),
+    };
+  }
 }
 
 function normaliseSeasonNumber(value: unknown) {
