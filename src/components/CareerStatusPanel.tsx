@@ -1,11 +1,13 @@
-import { DEFAULT_CAREER_STATE, type CareerState } from '../game/careerState';
+import { DEFAULT_CAREER_STATE, createCareerStateFromSave, type CareerState } from '../game/careerState';
+import { loadLocalSeasonSave } from '../game/localSave';
 
 type CareerStatusPanelProps = {
   careerState?: CareerState;
 };
 
-export function CareerStatusPanel({ careerState = DEFAULT_CAREER_STATE }: CareerStatusPanelProps) {
-  const { currentSeason, careerPhase, careerHistory } = careerState;
+export function CareerStatusPanel({ careerState }: CareerStatusPanelProps) {
+  const resolvedCareerState = careerState ?? getSavedCareerState();
+  const { currentSeason, careerPhase, careerHistory } = resolvedCareerState;
   const managerRecord = careerHistory.managerRecord;
   const totalGames = managerRecord.regularSeasonWins + managerRecord.regularSeasonLosses;
   const winRate = totalGames > 0 ? Math.round((managerRecord.regularSeasonWins / totalGames) * 100) : 0;
@@ -34,6 +36,11 @@ export function CareerStatusPanel({ careerState = DEFAULT_CAREER_STATE }: Career
       </div>
     </article>
   );
+}
+
+function getSavedCareerState(): CareerState {
+  if (typeof window === 'undefined') return DEFAULT_CAREER_STATE;
+  return createCareerStateFromSave(loadLocalSeasonSave());
 }
 
 function CareerStatusStat({ label, value, helper }: { label: string; value: string; helper: string }) {
